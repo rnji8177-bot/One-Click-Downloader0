@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>One Click Downloader</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" href="/static/favicon.png" />
+  <link rel="apple-touch-icon" href="/static/icon-192.png" />
+  <meta name="theme-color" content="#0070f3" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --bg-dark: #0b1120;
+      --card-bg: rgba(17, 24, 39, 0.85);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --brand-blue: #0070f3;
+      --brand-green: #10b981;
+      --brand-gradient: linear-gradient(135deg, #0070f3 0%, #00b4d8 50%, #10b981 100%);
+      --yt: #ff0000;
+      --insta: #e1306c;
+      --fb: #1877f2;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 14px 40px;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(0, 112, 243, 0.18) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.15) 0%, transparent 45%);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 540px;
+    }
+
+    /* PWA Install Banner */
+    .pwa-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, rgba(0, 112, 243, 0.25) 0%, rgba(16, 185, 129, 0.25) 100%);
+      border: 1px solid rgba(0, 112, 243, 0.4);
+      padding: 12px 16px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .pwa-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .pwa-info img {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+
+    .pwa-text {
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .pwa-text span {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .btn-install {
+      background: white;
+      color: #0b1120;
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .app-logo {
+      width: 88px;
+      height: 88px;
+      border-radius: 22px;
+      box-shadow: 0 12px 28px -6px rgba(0, 112, 243, 0.5);
+      margin-bottom: 12px;
+      transition: transform 0.2s;
+    }
+
+    .app-logo:hover {
+      transform: scale(1.04);
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+      background: linear-gradient(135deg, #ffffff 40%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 13.5px;
+      line-height: 1.5;
+    }
+
+    /* Supported badges */
+    .platforms {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .plat-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+    .plat-chip.yt i { color: var(--yt); }
+    .plat-chip.insta i { color: var(--insta); }
+    .plat-chip.fb i { color: var(--fb); }
+
+    /* Main Card */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+      margin-bottom: 18px;
+    }
+
+    .input-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 6px 6px 6px 12px;
+      transition: all 0.2s;
+    }
+
+    .input-box:focus-within {
+      border-color: var(--brand-blue);
+      box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.25);
+    }
+
+    .input-box i.link-icon {
+      color: var(--text-muted);
+      font-size: 16px;
+      margin-right: 8px;
+    }
+
+    .input-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: white;
+      font-size: 14.5px;
+      padding: 8px 0;
+    }
+
+    .input-box input::placeholder {
+      color: #64748b;
+    }
+
+    .btn-paste {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-paste:hover {
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .btn-fetch {
+      width: 100%;
+      margin-top: 14px;
+      background: var(--brand-gradient);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 15.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 10px 25px -5px rgba(0, 112, 243, 0.45);
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    .btn-fetch:active {
+      transform: scale(0.98);
+    }
+
+    .btn-fetch:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Result Preview Card */
+    .preview-card {
+      display: none;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--card-border);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .video-info {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .thumb-wrap {
+      position: relative;
+      width: 120px;
+      height: 76px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #1e293b;
+      flex-shrink: 0;
+    }
+
+    .thumb-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .thumb-wrap .duration {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .details .title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: white;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .details .uploader {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Format Selection */
+    .quality-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .formats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .format-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1.5px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s;
+    }
+
+    .format-btn:hover {
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .format-btn.active {
+      border-color: var(--brand-blue);
+      background: rgba(0, 112, 243, 0.18);
+      color: white;
+    }
+
+    .btn-download-action {
+      width: 100%;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 15.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.45);
+      transition: all 0.2s;
+    }
+
+    .btn-download-action:active {
+      transform: scale(0.98);
+    }
+
+    .btn-download-action:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Status & Alerts */
+    .status-alert {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      margin-top: 14px;
+      line-height: 1.4;
+    }
+
+    .status-alert.error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #fca5a5;
+    }
+
+    .status-alert.info {
+      background: rgba(0, 112, 243, 0.15);
+      border: 1px solid rgba(0, 112, 243, 0.35);
+      color: #93c5fd;
+    }
+
+    /* Security & Install Help Card */
+    .info-card {
+      background: rgba(17, 24, 39, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 18px;
+      margin-top: 18px;
+    }
+
+    .info-card h3 {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .guide-step {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(0, 112, 243, 0.25);
+      color: #60a5fa;
+      font-weight: 700;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .security-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 8px 12px;
+      border-radius: 10px;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- PWA Install Banner -->
+    <div id="pwaBanner" class="pwa-banner">
+      <div class="pwa-info">
+        <img src="/static/icon-192.png" alt="Logo" />
+        <div class="pwa-text">
+          One Click Downloader
+          <span>Phone ki Home Screen par install karein</span>
+        </div>
+      </div>
+      <button id="pwaInstallBtn" class="btn-install">Install</button>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+      <img src="/static/icon-192.png" alt="One Click Downloader Logo" class="app-logo" />
+      <h1>One Click Downloader</h1>
+      <p class="subtitle">YouTube, Instagram aur Facebook se koi bhi video copy karke paste karein aur seedha apne File Manager me save karein.</p>
+
+      <div class="platforms">
+        <div class="plat-chip yt"><i class="fa-brands fa-youtube"></i> YouTube</div>
+        <div class="plat-chip insta"><i class="fa-brands fa-instagram"></i> Instagram</div>
+        <div class="plat-chip fb"><i class="fa-brands fa-facebook"></i> Facebook</div>
+      </div>
+    </div>
+
+    <!-- Main Downloader Card -->
+    <div class="card">
+      <div class="input-box">
+        <i class="fa-solid fa-link link-icon"></i>
+        <input type="text" id="videoUrl" placeholder="Video ka link yahan paste karein..." autocomplete="off" />
+        <button id="pasteBtn" class="btn-paste" title="Clipboard se Paste karein">
+          <i class="fa-regular fa-paste"></i> Paste
+        </button>
+      </div>
+
+      <button id="fetchBtn" class="btn-fetch">
+        <i class="fa-solid fa-magnifying-glass"></i> Video Fetch Karein
+      </button>
+
+      <div id="statusAlert" class="status-alert"></div>
+
+      <!-- Preview Section -->
+      <div id="previewCard" class="preview-card">
+        <div class="video-info">
+          <div class="thumb-wrap">
+            <img id="thumbImg" src="" alt="Thumbnail" />
+            <div id="durationBadge" class="duration">00:00</div>
+          </div>
+          <div class="details">
+            <div id="videoTitle" class="title">Video Title</div>
+            <div id="videoAuthor" class="uploader"><i class="fa-solid fa-circle-user"></i> Channel</div>
+          </div>
+        </div>
+
+        <div class="quality-title"><i class="fa-solid fa-sliders"></i> Quality Select Karein:</div>
+        <div class="formats-grid" id="formatsContainer">
+          <button class="format-btn active" data-quality="best_video">
+            <span>Full HD / Best</span> <i class="fa-solid fa-circle-check"></i>
+          </button>
+          <button class="format-btn" data-quality="720p">
+            <span>HD 720p</span> <i class="fa-regular fa-circle"></i>
+          </button>
+          <button class="format-btn" data-quality="480p">
+            <span>SD 480p</span> <i class="fa-regular fa-circle"></i>
+          </button>
+          <button class="format-btn" data-quality="audio_mp3">
+            <span>Audio (MP3)</span> <i class="fa-regular fa-circle"></i>
+          </button>
+        </div>
+
+        <!-- 📢 AD SLOT 1 (Banner / Native Ad: Monetag ya Adsterra ka code yahan aayega) -->
+        <div id="ad-slot-middle" style="margin: 12px 0; text-align: center; min-height: 50px;">
+          <!-- Yahan apna Adsterra / Monetag Ad Script paste karein -->
+        </div>
+
+        <button id="downloadBtn" class="btn-download-action">
+          <i class="fa-solid fa-cloud-arrow-down"></i> File Manager Me Save Karein
+        </button>
+      </div>
+    </div>
+
+    <!-- 📢 AD SLOT 2 (Bottom Banner Ad: Yahan doosra ad code paste karein) -->
+    <div id="ad-slot-bottom" style="margin: 14px 0; text-align: center; min-height: 50px;">
+      <!-- Yahan apna Bottom Banner Script paste karein -->
+    </div>
+
+    <!-- Security & How to Install Card -->
+    <div class="info-card">
+      <h3><i class="fa-solid fa-mobile-screen-button" style="color: #0070f3;"></i> Phone Me Install Kaise Karein:</h3>
+      <div class="guide-step">
+        <div class="step-num">1</div>
+        <div>Apne Android Mobile ke <b>Chrome Browser</b> me ye address kholein: <br><code style="color: #60a5fa;">http://10.173.69.46:5050</code></div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">2</div>
+        <div>Chrome ke upar <b>3-dots (⋮) Menu</b> dabayein aur <b>"Install app"</b> ya <b>"Add to Home screen"</b> select karein.</div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">3</div>
+        <div>Aapke mobile par <b>One Click Downloader</b> ka app icon lag jayega. Ab koi bhi link copy karke direct paste karein aur File Manager me save karein!</div>
+      </div>
+
+      <div class="security-badge">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>100% Safe & Secure: Anti-SSRF Protected, Rate-Limited & End-to-End Private.</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const videoUrl = document.getElementById('videoUrl');
+    const pasteBtn = document.getElementById('pasteBtn');
+    const fetchBtn = document.getElementById('fetchBtn');
+    const previewCard = document.getElementById('previewCard');
+    const thumbImg = document.getElementById('thumbImg');
+    const durationBadge = document.getElementById('durationBadge');
+    const videoTitle = document.getElementById('videoTitle');
+    const videoAuthor = document.getElementById('videoAuthor');
+    const statusAlert = document.getElementById('statusAlert');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const formatBtns = document.querySelectorAll('.format-btn');
+
+    let selectedQuality = 'best_video';
+    let currentUrl = '';
+
+    function showStatus(text, type = 'info') {
+      statusAlert.textContent = text;
+      statusAlert.className = `status-alert ${type}`;
+      statusAlert.style.display = 'block';
+    }
+
+    function hideStatus() {
+      statusAlert.style.display = 'none';
+    }
+
+    // Paste from clipboard
+    pasteBtn.addEventListener('click', async () => {
+      try {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            videoUrl.value = text.trim();
+            fetchVideoInfo();
+          } else {
+            showStatus('Clipboard khali hai!', 'error');
+          }
+        } else {
+          videoUrl.focus();
+        }
+      } catch (err) {
+        videoUrl.focus();
+      }
+    });
+
+    // Format selection
+    formatBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        formatBtns.forEach(b => {
+          b.classList.remove('active');
+          const icon = b.querySelector('i');
+          if (icon) icon.className = 'fa-regular fa-circle';
+        });
+        btn.classList.add('active');
+        const activeIcon = btn.querySelector('i');
+        if (activeIcon) activeIcon.className = 'fa-solid fa-circle-check';
+        selectedQuality = btn.getAttribute('data-quality');
+      });
+    });
+
+    // Fetch Video Info
+    async function fetchVideoInfo() {
+      const url = videoUrl.value.trim();
+      if (!url) {
+        showStatus('Kripya video ka link dalein!', 'error');
+        return;
+      }
+
+      currentUrl = url;
+      hideStatus();
+      previewCard.style.display = 'none';
+      fetchBtn.disabled = true;
+      fetchBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Video Jaanch Rahi Hai...';
+
+      try {
+        const response = await fetch('/api/info', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: currentUrl })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          showStatus(data.error || 'Video fetch nahi ho saki.', 'error');
+          return;
+        }
+
+        videoTitle.textContent = data.title;
+        videoAuthor.innerHTML = `<i class="fa-solid fa-circle-user"></i> ${data.uploader || data.platform}`;
+        thumbImg.src = data.thumbnail || 'https://via.placeholder.com/320x180?text=Video';
+        
+        if (data.duration) {
+          durationBadge.textContent = data.duration;
+          durationBadge.style.display = 'block';
+        } else {
+          durationBadge.style.display = 'none';
+        }
+
+        previewCard.style.display = 'block';
+
+      } catch (err) {
+        showStatus('Server se connect nahi ho saka. Connection check karein.', 'error');
+      } finally {
+        fetchBtn.disabled = false;
+        fetchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Video Fetch Karein';
+      }
+    }
+
+    fetchBtn.addEventListener('click', fetchVideoInfo);
+
+    videoUrl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') fetchVideoInfo();
+    });
+
+    // Download action
+    downloadBtn.addEventListener('click', async () => {
+      if (!currentUrl) return;
+
+      const downloadUrl = `/api/download?url=${encodeURIComponent(currentUrl)}&quality=${encodeURIComponent(selectedQuality)}`;
+      
+      downloadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Video Download Ho Raha Hai...';
+      downloadBtn.disabled = true;
+      hideStatus();
+
+      try {
+        const response = await fetch(downloadUrl);
+        if (!response.ok) {
+          const errText = await response.text();
+          showStatus(errText || 'Download fail ho gaya.', 'error');
+          downloadBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Dobara Koshish Karein';
+          downloadBtn.disabled = false;
+          return;
+        }
+
+        const blob = await response.blob();
+        let filename = 'OneClick_Video';
+        const disposition = response.headers.get('Content-Disposition');
+        if (disposition && disposition.indexOf('filename=') !== -1) {
+          const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+          const matches = filenameRegex.exec(disposition);
+          if (matches != null && matches[1]) {
+            filename = matches[1].replace(/['"]/g, '');
+          }
+        } else {
+          filename += selectedQuality === 'audio_mp3' ? '.mp3' : '.mp4';
+        }
+
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+
+        downloadBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> File Manager Me Save Ho Gaya!';
+        setTimeout(() => {
+          downloadBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> File Manager Me Save Karein';
+          downloadBtn.disabled = false;
+        }, 3500);
+
+      } catch (err) {
+        showStatus('Download error: ' + err.message, 'error');
+        downloadBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Dobara Koshish Karein';
+        downloadBtn.disabled = false;
+      }
+    });
+
+    // PWA Install Prompt
+    let deferredPrompt;
+    const pwaBanner = document.getElementById('pwaBanner');
+    const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      pwaBanner.style.display = 'flex';
+    });
+
+    pwaInstallBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          pwaBanner.style.display = 'none';
+        }
+        deferredPrompt = null;
+      }
+    });
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
